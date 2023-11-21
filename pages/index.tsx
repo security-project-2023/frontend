@@ -1,46 +1,20 @@
 import styled from "styled-components";
-import Banner from "./components/Banner";
+import Banner from "../components/Banner";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import Product from "@/api/Product";
+import { Product as ProductType } from "@/api/Product/get";
 
 export default function Index() {
-  const contentList = [
-    {
-      thumbnail: "/images/banner/poster1.png",
-      title: "뮤지컬 <레미제라블>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-    {
-      thumbnail: "/images/banner/poster2.png",
-      title: "태양의 서커스 <루치아>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-    {
-      thumbnail: "/images/banner/poster1.png",
-      title: "뮤지컬 <레미제라블>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-    {
-      thumbnail: "/images/banner/poster2.png",
-      title: "태양의 서커스 <루치아>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-    {
-      thumbnail: "/images/banner/poster1.png",
-      title: "뮤지컬 <레미제라블>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-    {
-      thumbnail: "/images/banner/poster2.png",
-      title: "태양의 서커스 <루치아>",
-      place: "블루스퀘어 신한카드홀",
-      date: "2023.11.30 ~ 2024.3.10",
-    },
-  ];
+  const [contentList, setContentList] = useState<ProductType[]>();
+  const router = useRouter();
+
+  useEffect(() => {
+    Product.findAll().then((res) => {
+      setContentList(res.data);
+    });
+  }, []);
 
   return (
     <>
@@ -48,17 +22,22 @@ export default function Index() {
         <Banner />
         <Container>
           <CategoryTitleWrapper>
-            <Link href={"/category/musical"}>뮤지컬</Link>
+            <Link href={"/category/musical"}>행사</Link>
             <Icon src="/images/icons/right.svg" />
           </CategoryTitleWrapper>
           <Row>
-            {contentList.map((content, index) => (
-              <ContentWrapper key={index}>
+            {contentList?.map((content, index) => (
+              <ContentWrapper
+                onClick={() => {
+                  router.push(`/detail/${content.id}`);
+                }}
+                key={index}
+              >
                 <Poster src={content.thumbnail} />
                 <Detail>
                   <h1>{content.title}</h1>
                   <h2>{content.place}</h2>
-                  <p>{content.date}</p>
+                  <p>{content.time}</p>
                 </Detail>
               </ContentWrapper>
             ))}
@@ -115,6 +94,8 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  cursor: pointer;
 `;
 
 const Poster = styled.img`

@@ -1,9 +1,28 @@
+import { login } from "@/api/auth/login";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useCallback, useState } from "react";
 import styled from "styled-components";
 
 export default function Login() {
   const [visible, setVisible] = useState(true);
+  const [id, setId] = useState("");
+  const [password, setPassword] = useState("");
+
+  const router = useRouter();
+
+  const loginHandler = useCallback(() => {
+    login({ id, password })
+      .then((res) => {
+        if (res.status === 201) {
+          router.push("/");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("로그인에 실패했습니다.");
+      });
+  }, [id, password, router]);
 
   return (
     <>
@@ -13,15 +32,29 @@ export default function Login() {
             <Logo src="/images/logo.svg" />
             <SubTitle>로그인 후 서비스를 이용하실 수 있습니다.</SubTitle>
           </TitleWrapper>
-          <Column gap={20}>
+          <Column
+            as="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              loginHandler();
+            }}
+            gap={20}
+          >
             <InputWrapper>
               <InputBox>
                 <InputIcon src="/images/icons/user.svg" />
-                <Input type="text" placeholder="아이디를 입력해주세요" />
+                <Input
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  type="text"
+                  placeholder="아이디를 입력해주세요"
+                />
               </InputBox>
               <InputBox>
                 <InputIcon src="/images/icons/password.svg" />
                 <Input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   type={visible ? "password" : "text"}
                   placeholder="비밀번호를 입력해주세요"
                 />
@@ -41,16 +74,6 @@ export default function Login() {
                 <Link href="/signup">아이디/비밀번호</Link>
               </AuthWrapper>
             </Column>
-
-            <LineWrapper>
-              <Line />
-              <p>SNS 로그인</p>
-              <Line />
-            </LineWrapper>
-            <GoogleButton>
-              <InputIcon src="/images/icons/google.svg" />
-              구글 계정으로 로그인하기
-            </GoogleButton>
           </Column>
         </Container>
       </Wrapper>
@@ -130,18 +153,6 @@ const Button = styled.button`
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-`;
-
-const GoogleButton = styled(Button)`
-  background-color: #ffffff;
-  border: 1px solid #c4c4c4;
-  color: #353535;
-  font-weight: 400;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
 `;
 
 const Column = styled.div<{ gap: number }>`

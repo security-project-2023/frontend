@@ -55,6 +55,8 @@ const Wrapper = styled.div`
 
   display: flex;
   flex-direction: column;
+
+  border-bottom: 1px solid #e9ecef;
 `;
 
 const Top = styled.div`

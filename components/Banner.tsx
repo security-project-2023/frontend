@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 export default function Banner() {
@@ -7,8 +7,18 @@ export default function Banner() {
   const bannerList = [
     "/images/banner/1.png",
     "/images/banner/2.png",
-    "/images/banner/1.png",
+    "/images/banner/3.png",
   ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % bannerList.length);
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  });
 
   return (
     <>
@@ -56,6 +66,10 @@ const Pagination = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 4px 8px;
+  border-radius: 40px;
 `;
 
 const Page = styled.div<{ selected?: boolean }>`

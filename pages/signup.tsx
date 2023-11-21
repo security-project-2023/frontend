@@ -1,10 +1,35 @@
+import { register } from "@/api/auth/register";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useCallback, useState } from "react";
 import styled from "styled-components";
 
 export default function Signup() {
   const [visible, setVisible] = useState(true);
   const [reVisible, setReVisible] = useState(true);
+
+  const [id, setId] = useState("");
+  const [password, setPassword] = useState("");
+  const [rePassword, setRePassword] = useState("");
+
+  const router = useRouter();
+
+  const signupHandler = useCallback(() => {
+    if (password !== rePassword) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    register({ id, password })
+      .then((res) => {
+        if (res.status === 201) {
+          router.push("/login");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("회원가입에 실패했습니다.");
+      });
+  }, [id, password, rePassword, router]);
 
   return (
     <>
@@ -14,15 +39,29 @@ export default function Signup() {
             <Logo src="/images/logo.svg" />
             <SubTitle>회원가입 후 서비스를 이용하실 수 있습니다.</SubTitle>
           </TitleWrapper>
-          <Column gap={20}>
+          <Column
+            as="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              signupHandler();
+            }}
+            gap={20}
+          >
             <InputWrapper>
               <InputBox>
                 <InputIcon src="/images/icons/user.svg" />
-                <Input type="text" placeholder="아이디를 입력해주세요" />
+                <Input
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  type="text"
+                  placeholder="아이디를 입력해주세요"
+                />
               </InputBox>
               <InputBox>
                 <InputIcon src="/images/icons/password.svg" />
                 <Input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   type={visible ? "password" : "text"}
                   placeholder="비밀번호 입력해주세요"
                 />
@@ -37,6 +76,8 @@ export default function Signup() {
               <InputBox>
                 <InputIcon src="/images/icons/password.svg" />
                 <Input
+                  value={rePassword}
+                  onChange={(e) => setRePassword(e.target.value)}
                   type={reVisible ? "password" : "text"}
                   placeholder="비밀번호 확인"
                 />
@@ -58,16 +99,6 @@ export default function Signup() {
                 <Link href="/signup">아이디/비밀번호</Link>
               </AuthWrapper>
             </Column>
-
-            <LineWrapper>
-              <Line />
-              <p>SNS 회원가입</p>
-              <Line />
-            </LineWrapper>
-            <GoogleButton>
-              <InputIcon src="/images/icons/google.svg" />
-              구글 계정으로 회원가입하기
-            </GoogleButton>
           </Column>
         </Container>
       </Wrapper>
@@ -149,18 +180,6 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
-const GoogleButton = styled(Button)`
-  background-color: #ffffff;
-  border: 1px solid #c4c4c4;
-  color: #353535;
-  font-weight: 400;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-`;
-
 const Column = styled.div<{ gap: number }>`
   display: flex;
   flex-direction: column;
@@ -197,26 +216,4 @@ const AuthWrapper = styled.div`
       color: #797979;
     }
   }
-`;
-
-const LineWrapper = styled.div`
-  width: 100%;
-  height: 1px;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 18px;
-
-  p {
-    font-size: 14px;
-    font-weight: 500;
-    color: #c4c4c4;
-  }
-`;
-
-const Line = styled.div`
-  flex: 1;
-  height: 1px;
-  background-color: #c4c4c4;
 `;
