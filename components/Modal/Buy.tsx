@@ -1,8 +1,13 @@
 import styled from "styled-components";
 import Base from "./Base";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from ".";
 import { Product as ProductType } from "@/api/Product/get";
+import Web3 from "web3";
+import useWeb3 from "@/hooks/useWeb3";
+import { abi } from "@/constants/abi";
+import Eth from "@/api/Eth";
+import { useRouter } from "next/router";
 
 type Props = {
   product: ProductType;
@@ -11,8 +16,12 @@ type Props = {
 };
 
 export default function Buy(props: Props) {
+  const [account, web3] = useWeb3();
+  const [isLogin, setIsLogin] = useState(false);
+
+  const router = useRouter();
+
   const [select, setSelect] = useState(0);
-  const [payment, setPayment] = useState(false);
   const seatType = useMemo(() => {
     if (!props.product) return [];
     return props.product.tiers?.map((tier, index) => ({
@@ -20,6 +29,26 @@ export default function Buy(props: Props) {
       price: Number(props?.product?.prices[index]),
     }));
   }, [props.product]);
+
+  async function buyTicket() {
+    if (!web3 || !account) return;
+
+    const ticketId = (await Eth.getTicketIdsByProductId(props.product.id))
+      .data as string[];
+
+    const contract = new (web3 as Web3).eth.Contract(abi, Eth.ContractAddress);
+
+    const receipt = await contract.methods.purchaseTicket(ticketId[0]).send({
+      from: account,
+      value: `${seatType[select].price}`,
+      gas: 100000,
+    });
+  }
+
+  useEffect(() => {
+    if (!account) return;
+    setIsLogin(true);
+  }, [account]);
 
   return (
     <>
@@ -34,19 +63,30 @@ export default function Buy(props: Props) {
                 onClick={() => setSelect(index)}
               >
                 <h1>{seat.name}석</h1>
-                <p>{seat.price.toLocaleString()}원</p>
+                <p>{Web3.utils.fromWei(seat.price.toString(), "ether")}원</p>
               </Seat>
             ))}
           </Row>
-          <Button onClick={() => setPayment(true)}>구매하기</Button>
+          <Button
+            onClick={() => {
+              if (!isLogin) {
+                alert("로그인을 해주세요.");
+                return;
+              }
+
+              if (!seatType) return;
+
+              buyTicket().then(() => {
+                props.closeHandler();
+                alert("구매가 완료되었습니다.");
+                router.push("/reservation");
+              });
+            }}
+          >
+            구매하기
+          </Button>
         </Wrapper>
       </Base>
-      <Modal.Payments.Checkout
-        productTitle={props.product?.title}
-        isOpen={payment}
-        closeHandler={() => setPayment(true)}
-        seat={seatType![select]}
-      />
     </>
   );
 }

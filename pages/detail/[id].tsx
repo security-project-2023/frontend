@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useParams } from "next/navigation";
 import Product from "@/api/Product";
 import { Age, Product as ProductType, ageToKorean } from "@/api/Product/get";
+import Web3 from "web3";
 
 export default function Detail() {
   const [modal, setModal] = useState(false);
@@ -23,7 +24,6 @@ export default function Detail() {
     Product.findOneById(id)
       .then((product) => {
         setProduct(product.data);
-        console.log(product.data);
       })
       .catch((err) => {
         if (err.response.status === 404) {
@@ -79,7 +79,8 @@ export default function Detail() {
                         {tier}
                       </Key>
                       <Value>
-                        {Number(product?.prices?.[index]).toLocaleString()}원
+                        {Web3.utils.fromWei(product?.prices?.[index], "ether")}{" "}
+                        ETH
                       </Value>
                     </Row>
                   ))}
@@ -87,7 +88,8 @@ export default function Detail() {
               </ContentWrapper>
               <PaymentWrapper>
                 <Price>
-                  {Number(product?.prices?.[0]).toLocaleString()} 원
+                  {product && Web3.utils.fromWei(product.prices[0], "ether")}{" "}
+                  ETH
                 </Price>
                 <PaymentButton onClick={() => setModal(true)}>
                   예매하기

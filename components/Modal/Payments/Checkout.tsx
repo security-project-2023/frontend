@@ -7,6 +7,10 @@ import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
 import ModalBase from "../Base";
+import Product from "@/api/Product";
+import { Product as ProductType } from "@/api/Product/get";
+import Purchase from "@/api/Purchase";
+import { Purchase as PurchaseType } from "@/api/Purchase/create";
 
 const clientKey = "test_ck_ORzdMaqN3wyma2oZ657gr5AkYXQG";
 const customerKey = nanoid();
@@ -41,6 +45,27 @@ export default function Checkout(props: Props) {
   // const agreementsWidgetRef = useRef<ReturnType<
   //   PaymentWidgetInstance["renderAgreement"]
   // > | null>(null);
+  const [product, setProduct] = useState<ProductType>();
+  const [purchase, setPurchase] = useState<PurchaseType>();
+
+  async function purchaseHandler() {
+    await Purchase.create({
+      price: props.seat.price,
+      seat: props.seat.name,
+      title: props.productTitle,
+      time: product?.time!,
+    }).then((purchase) => {
+      setPurchase(purchase.data);
+    });
+  }
+
+  useEffect(() => {
+    if (props.productId == null) return;
+
+    Product.findOneById(props.productId).then((product) => {
+      setProduct(product.data);
+    });
+  }, [props.productId]);
 
   useEffect(() => {
     if (paymentWidget == null) return;
@@ -81,6 +106,8 @@ export default function Checkout(props: Props) {
           <ButtonWrapper>
             <Button
               onClick={async () => {
+                await purchaseHandler();
+
                 try {
                   await paymentWidget?.requestPayment({
                     orderId: nanoid(),
@@ -88,8 +115,8 @@ export default function Checkout(props: Props) {
                     customerName: "남영재",
                     customerEmail: "op@ye0ngjae.com",
                     customerMobilePhone: "01091507439",
-                    successUrl: `${window.location.origin}/payments/success`,
-                    failUrl: `${window.location.origin}/payments/fail`,
+                    successUrl: `${window.location.origin}/payments/success/${purchase?.id}`,
+                    failUrl: `${window.location.origin}/payments/fail/${purchase?.id}`,
                   });
                 } catch (error) {
                   console.error(error);

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // ------ Payment 객체 ------
 // @docs https://docs.tosspayments.com/reference#payment-객체
@@ -62,6 +63,9 @@ interface Props {
 }
 
 export default function SuccessPage({ payment }: Props) {
+  const param = useParams();
+  console.log(param);
+
   return (
     <main>
       <div className="result wrapper">
